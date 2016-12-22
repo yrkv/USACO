@@ -14,12 +14,27 @@ public class wormhole {
 
         int N = Integer.parseInt(f.readLine());
 
-        int[] wormholes = new int[N];
+        int[][] wormholes = new int[N][2];
 
         for (int i = 0; i < N; i++) {
             StringTokenizer st = new StringTokenizer(f.readLine());
-            st.nextToken();
-            wormholes[i] = Integer.parseInt(st.nextToken());
+            wormholes[i][0] = Integer.parseInt(st.nextToken());
+            wormholes[i][1] = Integer.parseInt(st.nextToken());
+        }
+
+        int p, k;
+        int[] key = new int[2];
+        for (p = 1; p < wormholes.length; p++)
+        {
+            key[0] = wormholes[p][0];
+            key[1] = wormholes[p][1];
+            for(k = p - 1; (k >= 0) && (wormholes[k][0] > key[0]); k--)
+            {
+                wormholes[k+1][0] = wormholes[k][0];
+                wormholes[k+1][1] = wormholes[k][1];
+            }
+            wormholes[k+1][0] = key[0];
+            wormholes[k+1][1] = key[1];
         }
 
         int combos = calculate(N);
@@ -30,11 +45,41 @@ public class wormhole {
 
         int[][] paths = createPaths(temp);
 
+        int count = 0;
 
+        for (int[] path: paths) {
+            if (testPath(path, wormholes))
+                count++;
+        }
 
+        out.println(count);
         out.close();
     }
 
+    private static boolean testPath(int[] path, int[][] wormholes) {
+        int N = wormholes.length;
+        for (int start = 0; start < N; start++) {
+            int location = start + 1;
+
+            int lastY = wormholes[start][1];
+            int lastX = wormholes[start][0];
+
+            while (location < N) {
+                if (wormholes[location][1] == lastY && wormholes[location][0] > lastX) {
+                    location = path[location];
+                    lastY = wormholes[location][1];
+                    lastX = wormholes[location][0];
+
+                }
+                if (location == start)
+                    return true;
+                while (location < N && (wormholes[location][0] == lastX || wormholes[location][1] != lastY)) {
+                    location++;
+                }
+            }
+        }
+        return false;
+    }
 
     private static int calculate(int n) {
         if (n <= 2) return 1;
