@@ -11,7 +11,7 @@ public class wormhole {
         BufferedReader f = new BufferedReader(new FileReader("wormhole.in"));
         
         PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("wormhole.out")));
-        
+
         int N = Integer.parseInt(f.readLine());
 
         int[] wormholes = new int[N];
@@ -22,44 +22,101 @@ public class wormhole {
             wormholes[i] = Integer.parseInt(st.nextToken());
         }
 
-        int p, k, key;
-        for (p = 1; p < wormholes.length; p++)
-        {
-            key = wormholes[p];
-            for(k = p - 1; (k >= 0) && (wormholes[k] > key); k--)
-            {
-                wormholes[k+1] = wormholes[k];
-            }
-            wormholes[k+1] = key;
-        }
+        int combos = calculate(N);
 
-        int wormholeTypes = 1;
+        int[] temp = new int[N];
+        for (int i = 0; i < N; i++)
+            temp[i] = -1;
 
-        for (int i = 1; i < N; i++) {
-            if (wormholes[i] != wormholes[i - 1]) wormholeTypes++;
-        }
+        int[][] paths = createPaths(temp);
 
-        int[] wormholeCounts = new int[wormholeTypes];
 
-        int sum = 0;
 
-        for (int i = 1; i < N; i++) {
-            if (wormholes[i] == wormholes[i - 1]) {
-                sum += nCr(N / 2, 2);
-            }
-        }
-
-        
-        out.println(sum);
         out.close();
     }
 
-    private static int nCr(int a, int b) {
-        return (f(a) / f(a - b)) / f(b);
+
+    private static int calculate(int n) {
+        if (n <= 2) return 1;
+        else return ((n - 1) * calculate(n - 2));
     }
 
-    private static int f(int a) {
-        if (a <= 1) return 1;
-        else return a * f(a-1);
+    private static int[][] createPaths(int[] path) {
+        int notFull = 0;
+        for (int x: path)
+            if (x == -1) notFull++;
+
+        int N = path.length;
+
+        int first = 0;
+        for (;first < N - 1; first++)
+            if (path[first] == -1)
+                break;
+
+        if (notFull > 2) {
+            int[] lasts = new int[notFull - 1];
+
+            int last = first + 1;
+            for (; last < N; last++) {
+                if (path[last] == -1) {
+                    lasts[0] = last;
+                    break;
+                }
+            }
+
+            for (int i = 1; i < lasts.length; i++) {
+                last = lasts[i - 1] + 1;
+                for (; last < N; last++) {
+                    if (path[last] == -1) {
+                        lasts[i] = last;
+                        break;
+                    }
+                }
+            }
+
+
+            int[][] paths = new int[lasts.length][N];
+
+            for (int i = 0; i < lasts.length; i++) {
+                paths[i] = path.clone();
+
+                paths[i][lasts[i]] = first;
+                paths[i][first] = lasts[i];
+            }
+
+            int[][] newPaths = new int[calculate(notFull)][N];
+
+
+            for (int i = 0; i < lasts.length; i++) {
+                int[][] aaa = createPaths(paths[i]);
+
+                int n = calculate(notFull - 2);
+
+                for (int j = i * n; j < i * n + n; j++) {
+                    int[] arr = aaa[j - i * n];
+                    newPaths[j] = arr.clone();
+                }
+            }
+
+            return newPaths;
+        } else {
+            int[][] newPath = new int[1][path.length];
+            newPath[0] = path.clone();
+
+            int f = 0;
+            for (;f < N - 1; f++)
+                if (path[f] == -1)
+                    break;
+
+            int l = f + 1;
+            for (;l < N - 1; l++)
+                if (path[l] == -1)
+                    break;
+
+            newPath[0][l] = f;
+            newPath[0][f] = l;
+
+            return  newPath;
+        }
     }
 }
